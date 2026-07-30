@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ZUTOMAYO CARD 도감 (한국어 / 日本語)</title>
+<meta name="description" content="ZUTOMAYO CARD 시즌1~4 전 카드 검색 도감. 일본어 공식 원문과 한국어 번역, 이름·효과 전문 검색, 초성 검색, 다중 필터, 정렬 지원." />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">ZUTOMAYO CARD</span>
+    <span class="sub" data-i18n="brandSub"></span>
+  </div>
+
+  <div class="search-wrap">
+    <input id="q" type="search" autocomplete="off" spellcheck="false" data-i18n-ph="searchPlaceholder" />
+    <button id="q-clear" type="button" hidden>✕</button>
+  </div>
+
+  <div class="topbar-right">
+    <div class="lang-switch" role="group">
+      <button id="lang-ko" type="button" data-lang="ko">한국어</button>
+      <button id="lang-ja" type="button" data-lang="ja">日本語</button>
+    </div>
+    <button id="view-toggle" class="ghost" type="button"></button>
+    <button id="theme-btn" class="ghost" type="button" title="theme">◐</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <section>
+      <h3><span data-i18n="fSeason"></span> <button class="reset" data-reset="season" type="button" data-i18n="all"></button></h3>
+      <div class="chips" id="f-season"></div>
+    </section>
+
+    <section>
+      <h3><span data-i18n="fType"></span> <button class="reset" data-reset="type" type="button" data-i18n="all"></button></h3>
+      <div class="chips" id="f-type"></div>
+    </section>
+
+    <section>
+      <h3><span data-i18n="fRarity"></span> <button class="reset" data-reset="rarity" type="button" data-i18n="all"></button></h3>
+      <div class="chips" id="f-rarity"></div>
+    </section>
+
+    <section>
+      <h3><span data-i18n="fAttribute"></span> <button class="reset" data-reset="attribute" type="button" data-i18n="all"></button></h3>
+      <div class="chips" id="f-attribute"></div>
+    </section>
+
+    <section>
+      <h3 data-i18n="fSong"></h3>
+      <select id="f-song"></select>
+    </section>
+
+    <!-- 숫자 범위 필터는 app.js 의 RANGES 에서 생성 -->
+    <section id="f-ranges"></section>
+
+    <button id="reset-all" class="reset-all" type="button" data-i18n="resetAll"></button>
+  </aside>
+
+  <main class="content">
+    <div class="toolbar">
+      <div class="count"><strong id="count">0</strong><span id="count-total"></span></div>
+      <div class="spacer"></div>
+      <label class="sort"><span data-i18n="sort"></span>
+        <select id="sort"></select>
+      </label>
+      <button id="share" class="ghost" type="button" data-i18n="copyLink"></button>
+    </div>
+
+    <div id="active-filters" class="active-filters"></div>
+
+    <div id="grid" class="grid"></div>
+
+    <div class="table-wrap" id="table-wrap" hidden>
+      <table class="cards-table">
+        <thead><tr id="thead-row"></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <p id="empty" class="empty" hidden data-i18n="noResult"></p>
+  </main>
+</div>
+
+<div id="modal" class="modal" hidden>
+  <button class="modal-nav prev" id="m-prev" type="button">‹</button>
+  <div class="modal-box" role="dialog" aria-modal="true">
+    <button class="modal-close" id="m-close" type="button">✕</button>
+    <div class="modal-img"><img id="m-img" alt="" /></div>
+    <div class="modal-info">
+      <h2 id="m-name"></h2>
+      <p id="m-subname" class="subname"></p>
+      <div class="badges" id="m-badges"></div>
+      <table id="m-table"></table>
+      <div class="modal-actions">
+        <button id="m-link" class="ghost" type="button" data-i18n="copyCardLink"></button>
+      </div>
+    </div>
+  </div>
+  <button class="modal-nav next" id="m-next" type="button">›</button>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

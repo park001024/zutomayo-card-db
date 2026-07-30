@@ -1,0 +1,66 @@
+{
+ "_note": "공식 사이트에 공개되지 않은 카드(4탄 SE 시크릿). 실물 카드를 보고 손으로 채운다. official_cards.json 과 같은 필드 구조를 쓰며, 한국어 번역은 data/i18n/ko.json 에 둔다. img 는 공식 CDN 주소가 없으므로 비워 두고, 이미지는 images/original/<id>.jpg 로 직접 넣는다.",
+ "4th_105": {
+  "id": "4th_105",
+  "pack": [
+   "Fantasy Is Reality"
+  ],
+  "title": "CHIRITORI-OTOKO DA!!",
+  "songs": "",
+  "illustrator": "sakiyama",
+  "rare": "SE",
+  "type": "カオス",
+  "class": "Character",
+  "clock": 0,
+  "night_attack": 0,
+  "noon_attack": 250,
+  "effect": "アビスのカードを８枚選び、裏向きにして混ぜ、デッキの底に置く。そうしない場合、ゲームに敗北する。\nお互いのパワーチャージャーのカードをすべてアビスに置く",
+  "cost": 0,
+  "power": 0,
+  "img": "",
+  "top_display": "非表示",
+  "public": "公開"
+ },
+ "4th_106": {
+  "id": "4th_106",
+  "pack": [
+   "Fantasy Is Reality"
+  ],
+  "title": "大丈夫 君と私だけ（無罪）",
+  "songs": "",
+  "illustrator": "のをか",
+  "rare": "SE",
+  "type": "闇",
+  "class": "Enchant",
+  "clock": 0,
+  "night_attack": "",
+  "noon_attack": "",
+  "effect": "クロノスの時計を９つ進ませる",
+  "cost": 2,
+  "power": 0,
+  "img": "",
+  "top_display": "非表示",
+  "public": "公開"
+ },
+ "4th_107": {
+  "id": "4th_107",
+  "pack": [
+   "Fantasy Is Reality"
+  ],
+  "title": "海馬まで灰だらけ",
+  "songs": "",
+  "illustrator": "TV♡CHANY",
+  "rare": "SE",
+  "type": "風",
+  "class": "Enchant",
+  "clock": 2,
+  "night_attack": "",
+  "noon_attack": "",
+  "effect": "相手のエリアエンチャントを、相手のアビスに置く",
+  "cost": 1,
+  "power": 1,
+  "img": "",
+  "top_display": "非表示",
+  "public": "公開"
+ }
+}
