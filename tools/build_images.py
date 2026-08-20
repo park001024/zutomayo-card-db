@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """images/original/*  ->  images/full/*.webp (모달용) + images/thumb/*.webp (그리드용)
 
-원본 JPG(약 152MB)는 보존용으로 저장소에 함께 커밋하고, 화면에서는 WebP 만 쓴다.
+원본 JPG(약 150MB)는 보존용으로 저장소에 함께 커밋하고, 화면에서는 WebP 만 쓴다.
+full 은 원본과 같은 크기로 다시 인코딩만 하고, thumb 만 폭 400 으로 줄인다.
 원본이 없으면 tools/fetch_images.py 로 다시 받을 수 있다.
 
   python3 tools/build_images.py            # 없는 것만 생성
