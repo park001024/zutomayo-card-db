@@ -89,6 +89,16 @@ function chosung(s) {
  * 탁점 ﾞ / 반탁점 ﾟ 는 뒤에 따로 오므로 앞 글자와 합쳐 준다 (ﾀ + ﾞ -> ダ). */
 const HALF_WIDE = '。「」、・ヲァィゥェォャュョッーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン';
 
+/* ASCII 로 대신 입력하기 쉬운 문장부호를 한 형태로 모은다.
+ * ★☆ 는 채움/비움이 뜻이 다른 기호라 합치지 않고, 、。「」・ 는 반각을 여기로 모으는
+ * 목표형이라 그대로 둔다. ♡ ※ 는 대응하는 ASCII 표기가 없다. */
+const PUNCT = {
+  '\u201c': '"', '\u201d': '"', '\u201e': '"', '\u201f': '"',
+  '\u2018': "'", '\u2019': "'", '\u201a': "'", '\u201b': "'",
+  '\u2026': '...', '\u301c': '~',
+};
+const PUNCT_RE = new RegExp('[' + Object.keys(PUNCT).join('') + ']', 'g');
+
 /** 검색 정규화 + 위치 추적.
  *  소문자 · 공백 제거 · 전각 ASCII(！~～)→반각 · 가타카나(전각·반각)→히라가나 ·
  *  중점 표기 통일.
@@ -121,7 +131,8 @@ function normScan(s) {
       .replace(/[！-～]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
       .replace(/[ァ-ヶ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60))
       .replace(/ς/g, 'σ')                          // 어말 시그마를 한 형태로 모은다
-      .replace(/[•·]/g, '・');                      // 중점 표기 차이를 흡수한다 (공식 데이터가 섞여 있다)
+      .replace(/[•·]/g, '・')                       // 중점 표기 차이를 흡수한다 (공식 데이터가 섞여 있다)
+      .replace(PUNCT_RE, (ch) => PUNCT[ch]);        // 굽은 따옴표·줄임표 등을 ASCII 로
 
     for (const ch of piece) { out += ch; from.push(i); to.push(i + len); }
     i += len - 1;
