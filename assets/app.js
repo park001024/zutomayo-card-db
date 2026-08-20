@@ -293,14 +293,38 @@ function filtered() {
 }
 
 /* ── 검색어 하이라이트 ─────────────────────── */
-const OPEN = '', CLOSE = '';   // esc() 이후 <mark> 로 치환할 임시 표식
+/** 문자열을 norm() 과 같은 기준으로 정규화하면서, 정규화된 각 문자가
+ *  원본의 몇 번째에서 왔는지 함께 돌려준다. (공백은 사라지므로 1:0 이 된다) */
+function normMap(s) {
+  let out = '';
+  const idx = [];
+  for (let i = 0; i < s.length; i++) {
+    for (const ch of norm(s[i])) { out += ch; idx.push(i); }
+  }
+  return { out, idx };
+}
+/** 검색어에 걸린 부분을 <mark> 로 감싼다.
+ *  검색이 norm() 기준(가타카나→히라가나·전각→반각·공백 무시)이므로
+ *  하이라이트도 같은 기준으로 찾는다. 그래야 ニラ 로 검색해도 にら 표기가 함께 강조된다. */
 function highlight(text, tokens) {
-  let s = String(text ?? '');
-  tokens.filter((x) => x && !isChosungQuery(x)).forEach((tok) => {
-    const re = new RegExp(tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    s = s.replace(re, (m) => OPEN + m + CLOSE);
+  const s = String(text ?? '');
+  const toks = tokens.map(norm).filter((x) => x && !isChosungQuery(x));
+  if (!toks.length) return esc(s);
+
+  const { out, idx } = normMap(s);
+  const hit = new Array(s.length).fill(false);
+  toks.forEach((tok) => {
+    for (let at = out.indexOf(tok); at >= 0; at = out.indexOf(tok, at + 1)) {
+      for (let k = at; k < at + tok.length; k++) hit[idx[k]] = true;
+    }
   });
-  return esc(s).split(OPEN).join('<mark>').split(CLOSE).join('</mark>');
+
+  let html = '', open = false;
+  for (let i = 0; i < s.length; i++) {
+    if (hit[i] !== open) { html += open ? '</mark>' : '<mark>'; open = hit[i]; }
+    html += esc(s[i]);
+  }
+  return html + (open ? '</mark>' : '');
 }
 
 /* ── 렌더 ─────────────────────────────────── */

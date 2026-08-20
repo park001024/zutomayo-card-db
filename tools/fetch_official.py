@@ -18,7 +18,7 @@ import urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SEARCH_PAGE = 'https://zutomayocard.net/search/'
 DST = os.path.join(ROOT, 'data/official_cards.json')
-UA = 'Mozilla/5.0 (compatible; zutomayo-card-korean/1.0; +https://github.com/park001024/zutomayo-card-korean)'
+UA = 'Mozilla/5.0 (compatible; zutomayo-card-db/1.0; +https://github.com/park001024/zutomayo-card-db)'
 
 
 def get(url, data=None, headers=None):

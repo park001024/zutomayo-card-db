@@ -13,7 +13,7 @@
 | 일본어 원문·수치 | 공식 사이트 MeiliSearch API | 422장. 이름·효과·시계·공격력·코스트·팩·수록곡·일러스트레이터 |
 | 한국어 번역 | 이 저장소 (`data/i18n/ko.json`) | 카드명 286개 · 곡명 42개 · 효과 231개를 일본어 원문에서 번역 |
 | 4탄 SE 3장 | `data/extra_cards.json` (손으로 채움) | 시크릿이라 공식에 없음. 공식과 같은 필드 구조를 쓰고, 화면에서는 다른 카드와 똑같이 취급 |
-| 카드 이미지 | 공식 CDN 원본 422장 + 다른 사이트에서 받아온 3장 | 700×978, WebP 로 재인코딩 (150MB → 63MB) |
+| 카드 이미지 | 공식 CDN 원본 422장 + 다른 사이트에서 받아온 3장 | 원본 JPG 를 보존용으로 함께 커밋하고, 화면에는 700×978 WebP 를 쓴다 (원본 152MB / WebP 83MB) |
 
 수치·속성·종류·등급은 모두 공식 값을 따른다.
 
@@ -55,7 +55,7 @@ data/extra_cards.json      공식에 없는 카드 — official_cards 와 같은
 data/overrides.json        위 두 파일의 표기 오류 교정 (카드 id -> 필드)
 data/i18n/ko.json          한국어 번역 전부 ← 번역 수정은 여기
 data/cards.json            ← 사이트가 읽는 결과물 (build_data.py 생성)
-images/original/           공식 CDN 원본 <공식id>.jpg (커밋하지 않음, 다시 받을 수 있음)
+images/original/           공식 CDN 원본 <공식id>.jpg (보존용으로 커밋한다 — 화면에서는 쓰지 않는다)
 images/full, images/thumb  WebP (모달용 / 그리드용)
 tools/                     수집·변환·점검 스크립트
 ```
@@ -67,7 +67,7 @@ tools/                     수집·변환·점검 스크립트
 ### 방법 A — 스프레드시트 (권장)
 
 ```bash
-python3 tools/i18n_csv.py export > review.csv    # 곡명 43 + 카드명 282 + 효과 228 = 553행
+python3 tools/i18n_csv.py export > review.csv    # 곡명 42 + 카드명 286 + 효과 231 = 559행
 # review.csv 를 엑셀/구글시트로 열어 ko 열만 고친다 (kind·ja 열은 매칭 키라 건드리지 말 것)
 python3 tools/i18n_csv.py import review.csv --dry # 무엇이 바뀌는지 먼저 확인
 python3 tools/i18n_csv.py import review.csv       # ko.json 에 반영
@@ -105,7 +105,7 @@ CSV 열: `kind`(songs/names/effects) · `ja`(일본어 원문) · **`ko`(고칠 
 - 용어: 어비스 / 파워 차저 / 배틀 존 / 배틀 필드 / 덱 / 패, 引く=뽑는다, 置く=둔다, 軽減=경감
 - 속성: 闇 어둠 · 炎 화염 · 電気 전기 · 風 바람 · カオス 카오스
 - 카드명은 공식 구조를 따라 `이름 (수록곡)` 형태
-- 일러스트레이터 185명은 고유명사라 일본어 표기 그대로 두었다
+- 일러스트레이터 186명은 고유명사라 일본어 표기 그대로 두었다
 - 곡명은 공식 번역명을 그대로 사용했다
 
 ## 다시 수집
@@ -130,7 +130,8 @@ python3 tools/build_data.py
 git add -A && git commit -m "..." && git push
 ```
 
-공개 저장소라 호스팅은 무료다 (용량 1GB / 트래픽 월 100GB 한도, 현재 약 82MB).
+공개 저장소라 호스팅은 무료다 (용량 1GB / 트래픽 월 100GB 한도, 현재 약 235MB —
+그중 152MB 는 화면에서 쓰지 않는 보존용 원본 이미지다).
 
 ## 출처
 

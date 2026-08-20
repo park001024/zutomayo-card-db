@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """images/original/*  ->  images/full/*.webp (모달용) + images/thumb/*.webp (그리드용)
 
-원본 PNG/JPG(약 110MB)는 저장소에 올리지 않고 WebP 만 커밋한다.
-원본이 필요하면 tools/fetch_images.sh 로 언제든 다시 받을 수 있다.
+원본 JPG(약 152MB)는 보존용으로 저장소에 함께 커밋하고, 화면에서는 WebP 만 쓴다.
+원본이 없으면 tools/fetch_images.py 로 다시 받을 수 있다.
 
   python3 tools/build_images.py            # 없는 것만 생성
   python3 tools/build_images.py --force    # 전부 다시 생성
@@ -34,7 +34,7 @@ def main():
         os.makedirs(d, exist_ok=True)
 
     if not os.path.isdir(SRC) or not os.listdir(SRC):
-        sys.exit(f'원본 이미지가 없습니다: {SRC}\n  bash tools/fetch_images.sh 를 먼저 실행하세요.')
+        sys.exit(f'원본 이미지가 없습니다: {SRC}\n  python3 tools/fetch_images.py 를 먼저 실행하세요.')
 
     made = skipped = 0
     for name in sorted(os.listdir(SRC)):
