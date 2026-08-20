@@ -85,14 +85,49 @@ function chosung(s) {
   }
   return out;
 }
-/** 검색 정규화: 소문자 + 공백 제거 + 전각→반각 + 가타카나→히라가나 */
-function norm(s) {
-  return (s || '')
-    .toLowerCase()
-    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
-    .replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60))
-    .replace(/\s+/g, '');
+/* 반각 가타카나 ｦ(U+FF66) ~ ﾝ(U+FF9D) 를 순서대로 전각 가타카나에 대응시킨 표.
+ * 탁점 ﾞ / 반탁점 ﾟ 는 뒤에 따로 오므로 앞 글자와 합쳐 준다 (ﾀ + ﾞ -> ダ). */
+const HALF_KANA = 'ヲァィゥェォャュョッーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン';
+
+/** 검색 정규화 + 위치 추적.
+ *  소문자 · 공백 제거 · 전각 영숫자→반각 · 가타카나(전각·반각)→히라가나.
+ *
+ *  반각 탁점은 두 글자가 한 글자로 줄고 대문자 일부는 한 글자가 여러 글자로 늘기 때문에
+ *  글자 수가 원본과 달라진다. 그래서 정규화 결과와 "그 글자가 원본의 어디에서 왔는지"를
+ *  한 곳에서 함께 만든다. 검색 인덱스(norm)와 하이라이트가 이 함수를 공유하므로
+ *  "검색은 걸리는데 하이라이트는 안 되는" 어긋남이 생기지 않는다.
+ *
+ *  out[k] 는 원본의 [from[k], to[k]) 구간에서 나온 글자다.
+ */
+function normScan(s) {
+  let out = '';
+  const from = [], to = [];
+  for (let i = 0; i < s.length; i++) {
+    if (/\s/.test(s[i])) continue;                 // 공백은 버린다 (대응 구간 없음)
+    const c = s.charCodeAt(i);
+    let piece = s[i], len = 1;
+
+    if (c >= 0xff66 && c <= 0xff9d) {              // 반각 가타카나
+      piece = HALF_KANA[c - 0xff66];
+      const nx = s.charCodeAt(i + 1);
+      if (nx === 0xff9e || nx === 0xff9f) {         // 탁점 / 반탁점을 합친다
+        const composed = (piece + (nx === 0xff9e ? '\u3099' : '\u309a')).normalize('NFC');
+        if (composed.length === 1) { piece = composed; len = 2; }
+      }
+    }
+    piece = piece
+      .toLowerCase()
+      .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+      .replace(/[ァ-ヶ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60))
+      .replace(/ς/g, 'σ');                         // 어말 시그마를 한 형태로 모은다
+
+    for (const ch of piece) { out += ch; from.push(i); to.push(i + len); }
+    i += len - 1;
+  }
+  return { out, from, to };
 }
+/** 검색용 정규화 문자열. 하이라이트와 같은 규칙을 쓴다. */
+const norm = (s) => normScan(s || '').out;
 const isChosungQuery = (x) => /^[ㄱ-ㅎ]+$/.test(x);
 
 /* ── 상태 ─────────────────────────────────── */
@@ -293,29 +328,21 @@ function filtered() {
 }
 
 /* ── 검색어 하이라이트 ─────────────────────── */
-/** 문자열을 norm() 과 같은 기준으로 정규화하면서, 정규화된 각 문자가
- *  원본의 몇 번째에서 왔는지 함께 돌려준다. (공백은 사라지므로 1:0 이 된다) */
-function normMap(s) {
-  let out = '';
-  const idx = [];
-  for (let i = 0; i < s.length; i++) {
-    for (const ch of norm(s[i])) { out += ch; idx.push(i); }
-  }
-  return { out, idx };
-}
 /** 검색어에 걸린 부분을 <mark> 로 감싼다.
- *  검색이 norm() 기준(가타카나→히라가나·전각→반각·공백 무시)이므로
- *  하이라이트도 같은 기준으로 찾는다. 그래야 ニラ 로 검색해도 にら 표기가 함께 강조된다. */
+ *  normScan 이 돌려주는 위치 정보로 정규화 문자열에서 찾은 자리를 원본 자리로 되돌린다.
+ *  그래서 ニラ 로 검색해도 にら 표기가, ﾀﾞﾝｽ 로 검색해도 ダンス 표기가 함께 강조된다. */
 function highlight(text, tokens) {
   const s = String(text ?? '');
   const toks = tokens.map(norm).filter((x) => x && !isChosungQuery(x));
   if (!toks.length) return esc(s);
 
-  const { out, idx } = normMap(s);
+  const { out, from, to } = normScan(s);
   const hit = new Array(s.length).fill(false);
   toks.forEach((tok) => {
     for (let at = out.indexOf(tok); at >= 0; at = out.indexOf(tok, at + 1)) {
-      for (let k = at; k < at + tok.length; k++) hit[idx[k]] = true;
+      for (let k = at; k < at + tok.length; k++) {
+        for (let j = from[k]; j < to[k]; j++) hit[j] = true;   // 탁점까지 함께 덮는다
+      }
     }
   });
 

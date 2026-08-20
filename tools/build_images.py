@@ -6,7 +6,7 @@ full 은 원본과 같은 크기로 다시 인코딩만 하고, thumb 만 폭 40
 원본이 없으면 tools/fetch_images.py 로 다시 받을 수 있다.
 
   python3 tools/build_images.py            # 없는 것만 생성
-  python3 tools/build_images.py --force    # 전부 다시 생성
+  python3 tools/build_images.py --force    # 전부 다시 생성 (원본을 바꿔 넣었을 때)
 """
 import os
 import sys
@@ -45,8 +45,11 @@ def main():
         stem = name.rsplit('.', 1)[0]   # 곧 공식 카드 id (1st_1 …)
         targets = [(os.path.join(FULL, stem + '.webp'), None, FULL_QUALITY),
                    (os.path.join(THUMB, stem + '.webp'), THUMB_WIDTH, THUMB_QUALITY)]
-        todo = [t for t in targets
-                if force or not os.path.exists(t[0]) or os.path.getmtime(t[0]) < os.path.getmtime(src)]
+        # mtime 비교는 쓰지 않는다. git 은 체크아웃 시각을 모든 파일의 mtime 으로 주고
+        # images/full 이 images/original 보다 먼저 기록되므로, 새로 clone 한 직후에는
+        # WebP 가 원본보다 "오래된" 것으로 보여 425장을 전부 다시 변환하게 된다.
+        # 원본을 바꿔 넣었을 때는 --force 로 다시 만든다.
+        todo = [t for t in targets if force or not os.path.exists(t[0])]
         if not todo:
             skipped += 1
             continue
