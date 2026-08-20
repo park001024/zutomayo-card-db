@@ -63,6 +63,10 @@ def main():
         return sum(os.path.getsize(os.path.join(p, f)) for f in os.listdir(p)) / 1024 / 1024
 
     print(f'{made}장 변환, {skipped}장 건너뜀')
+    if skipped and not force:
+        # 대상 파일이 있으면 원본이 바뀌었는지 보지 않고 건너뛴다. 원본을 갈아 넣은 뒤라면
+        # 여기서 조용히 옛 WebP 가 남으므로, 그 경우를 눈에 보이게 알려 준다.
+        print('  원본을 다시 받았거나 바꿔 넣었다면 --force 로 다시 만들어야 반영됩니다')
     print(f'original {mb(SRC):.1f}MB  ->  full(webp) {mb(FULL):.1f}MB + thumb {mb(THUMB):.1f}MB')
 
 

@@ -85,9 +85,9 @@ function chosung(s) {
   }
   return out;
 }
-/* 반각 가타카나 ｦ(U+FF66) ~ ﾝ(U+FF9D) 를 순서대로 전각 가타카나에 대응시킨 표.
+/* 반각 가나·구두점 ｡(U+FF61) ~ ﾝ(U+FF9D) 를 순서대로 전각에 대응시킨 표.
  * 탁점 ﾞ / 반탁점 ﾟ 는 뒤에 따로 오므로 앞 글자와 합쳐 준다 (ﾀ + ﾞ -> ダ). */
-const HALF_KANA = 'ヲァィゥェォャュョッーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン';
+const HALF_WIDE = '。「」、・ヲァィゥェォャュョッーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン';
 
 /** 검색 정규화 + 위치 추적.
  *  소문자 · 공백 제거 · 전각 영숫자→반각 · 가타카나(전각·반각)→히라가나.
@@ -107,8 +107,8 @@ function normScan(s) {
     const c = s.charCodeAt(i);
     let piece = s[i], len = 1;
 
-    if (c >= 0xff66 && c <= 0xff9d) {              // 반각 가타카나
-      piece = HALF_KANA[c - 0xff66];
+    if (c >= 0xff61 && c <= 0xff9d) {              // 반각 가나·구두점
+      piece = HALF_WIDE[c - 0xff61];
       const nx = s.charCodeAt(i + 1);
       if (nx === 0xff9e || nx === 0xff9f) {         // 탁점 / 반탁점을 합친다
         const composed = (piece + (nx === 0xff9e ? '\u3099' : '\u309a')).normalize('NFC');
