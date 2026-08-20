@@ -119,7 +119,8 @@ function normScan(s) {
       .toLowerCase()
       .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
       .replace(/[ァ-ヶ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60))
-      .replace(/ς/g, 'σ');                         // 어말 시그마를 한 형태로 모은다
+      .replace(/ς/g, 'σ')                          // 어말 시그마를 한 형태로 모은다
+      .replace(/[•·]/g, '・');                      // 중점 표기 차이를 흡수한다 (공식 데이터가 섞여 있다)
 
     for (const ch of piece) { out += ch; from.push(i); to.push(i + len); }
     i += len - 1;
