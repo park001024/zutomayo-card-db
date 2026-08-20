@@ -90,7 +90,8 @@ function chosung(s) {
 const HALF_WIDE = '。「」、・ヲァィゥェォャュョッーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン';
 
 /** 검색 정규화 + 위치 추적.
- *  소문자 · 공백 제거 · 전각 영숫자→반각 · 가타카나(전각·반각)→히라가나.
+ *  소문자 · 공백 제거 · 전각 ASCII(！~～)→반각 · 가타카나(전각·반각)→히라가나 ·
+ *  중점 표기 통일.
  *
  *  반각 탁점은 두 글자가 한 글자로 줄고 대문자 일부는 한 글자가 여러 글자로 늘기 때문에
  *  글자 수가 원본과 달라진다. 그래서 정규화 결과와 "그 글자가 원본의 어디에서 왔는지"를
@@ -117,7 +118,7 @@ function normScan(s) {
     }
     piece = piece
       .toLowerCase()
-      .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+      .replace(/[！-～]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
       .replace(/[ァ-ヶ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60))
       .replace(/ς/g, 'σ')                          // 어말 시그마를 한 형태로 모은다
       .replace(/[•·]/g, '・');                      // 중점 표기 차이를 흡수한다 (공식 데이터가 섞여 있다)
