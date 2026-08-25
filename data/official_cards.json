@@ -1882,7 +1882,7 @@
   "clock": 2,
   "night_attack": "",
   "noon_attack": "",
-  "effect": "昼から夜に変わると攻撃力+20 ",
+  "effect": "昼から夜に変わると攻撃力+20",
   "cost": 0,
   "power": 1,
   "img": "https://d12oj0i0pu43cb.cloudfront.net/zutomayocard.net/cardlist/1st/n/zutomayocard_1st_90.jpg",
@@ -8858,6 +8858,69 @@
   "cost": 3,
   "power": 0,
   "img": "https://d12oj0i0pu43cb.cloudfront.net/zutomayocard.net/cardlist/4th/n/zutomayocard_4th_104.jpg",
+  "top_display": "非表示",
+  "public": "公開"
+ },
+ {
+  "id": "4th_105",
+  "pack": [
+   "Fantasy Is Reality"
+  ],
+  "title": "CHIRITORI-OTOKO DA!!",
+  "songs": "",
+  "illustrator": "sakiyama",
+  "rare": "SE",
+  "type": "カオス",
+  "class": "Character",
+  "clock": 0,
+  "night_attack": 0,
+  "noon_attack": 250,
+  "effect": "アビスのカードを８枚選び、裏向きにして混ぜ、デッキの底に置く。そうしない場合、ゲームに敗北する。\nお互いのパワーチャージャーのカードをすべてアビスに置く",
+  "cost": 0,
+  "power": 0,
+  "img": "https://d12oj0i0pu43cb.cloudfront.net/zutomayocard.net/cardlist/4th/se/zutomayocard_4th_105.jpg",
+  "top_display": "非表示",
+  "public": "公開"
+ },
+ {
+  "id": "4th_106",
+  "pack": [
+   "Fantasy Is Reality"
+  ],
+  "title": "大丈夫 君と私だけ（無罪）",
+  "songs": "",
+  "illustrator": "のをか",
+  "rare": "SE",
+  "type": "闇",
+  "class": "Enchant",
+  "clock": 0,
+  "night_attack": "",
+  "noon_attack": "",
+  "effect": "クロノスの時計を９つ進ませる",
+  "cost": 2,
+  "power": 0,
+  "img": "https://d12oj0i0pu43cb.cloudfront.net/zutomayocard.net/cardlist/4th/se/zutomayocard_4th_106.jpg",
+  "top_display": "非表示",
+  "public": "公開"
+ },
+ {
+  "id": "4th_107",
+  "pack": [
+   "Fantasy Is Reality"
+  ],
+  "title": "海馬まで灰だらけ",
+  "songs": "",
+  "illustrator": "TV♡CHANY",
+  "rare": "SE",
+  "type": "風",
+  "class": "Enchant",
+  "clock": 2,
+  "night_attack": "",
+  "noon_attack": "",
+  "effect": "相手のエリアエンチャントを、相手のアビスに置く",
+  "cost": 1,
+  "power": 1,
+  "img": "https://d12oj0i0pu43cb.cloudfront.net/zutomayocard.net/cardlist/4th/se/zutomayocard_4th_107.jpg",
   "top_display": "非表示",
   "public": "公開"
  }
