@@ -16,6 +16,7 @@ const UI = {
     resetAll: '필터 전체 해제',
     rangeMin: '최소', rangeMax: '최대', rangeNote: (n) => `값이 있는 ${n}장만 대상`,
     sort: '정렬', copyLink: '🔗 링크 복사', copyCardLink: '🔗 이 카드 링크 복사',
+    sortAsc: '오름차순', sortDesc: '내림차순', sortDirHint: '오름차순 / 내림차순 전환',
     total: (n) => `/ ${n}장`,
     noResult: '조건에 맞는 카드가 없습니다. 검색어나 필터를 바꿔보세요.',
     viewTable: '☰ 표', viewGrid: '▦ 카드',
@@ -28,10 +29,9 @@ const UI = {
     pack: '팩', jaOriginal: '일본어 원문',
     nightShort: '밤', dayShort: '낮',
     sortOptions: [
-      ['default', '탄 · 번호'], ['name', '이름 (가나다)'], ['rarity', '등급 (N→SE)'],
-      ['chronos-asc', '크로노스 낮은 순'], ['chronos-desc', '크로노스 높은 순'],
-      ['cost-asc', '파워코스트 낮은 순'], ['cost-desc', '파워코스트 높은 순'],
-      ['night-desc', '밤 공격력 높은 순'], ['day-desc', '낮 공격력 높은 순'],
+      ['default', '탄 · 번호 순'], ['name', '이름 순'], ['rarity', '등급 순'],
+      ['chronos', '크로노스 순'], ['cost', '파워코스트 순'],
+      ['night', '밤 공격력 순'], ['day', '낮 공격력 순'],
     ],
     tableCols: ['이미지', '이름', '탄', '등급', '종류', '속성', '크로노스', '밤', '낮', '코스트', 'S→P', '효과'],
   },
@@ -44,6 +44,7 @@ const UI = {
     resetAll: 'フィルターをリセット',
     rangeMin: '下限', rangeMax: '上限', rangeNote: (n) => `値のある${n}枚のみ対象`,
     sort: '並び替え', copyLink: '🔗 リンクをコピー', copyCardLink: '🔗 このカードのリンク',
+    sortAsc: '昇順', sortDesc: '降順', sortDirHint: '昇順・降順を切り替え',
     total: (n) => `/ ${n}枚`,
     noResult: '条件に合うカードがありません。キーワードやフィルターを変えてみてください。',
     viewTable: '☰ 一覧', viewGrid: '▦ カード',
@@ -56,10 +57,9 @@ const UI = {
     pack: 'パック', jaOriginal: '日本語原文',
     nightShort: '夜', dayShort: '昼',
     sortOptions: [
-      ['default', '弾・番号'], ['name', '名前順'], ['rarity', 'レアリティ (N→SE)'],
-      ['chronos-asc', '時計が小さい順'], ['chronos-desc', '時計が大きい順'],
-      ['cost-asc', 'POWER COST 小さい順'], ['cost-desc', 'POWER COST 大きい順'],
-      ['night-desc', '夜攻撃力が高い順'], ['day-desc', '昼攻撃力が高い順'],
+      ['default', '弾・番号順'], ['name', '名前順'], ['rarity', 'レアリティ順'],
+      ['chronos', '時計順'], ['cost', 'POWER COST 順'],
+      ['night', '夜攻撃力順'], ['day', '昼攻撃力順'],
     ],
     tableCols: ['画像', '名前', '弾', 'レアリティ', '種類', '属性', '時計', '夜', '昼', 'COST', 'S→P', '効果'],
   },
@@ -75,6 +75,8 @@ const RANGES = [
 
 const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 const RARITY_ORDER = { N: 0, R: 1, SR: 2, UR: 3, SE: 4 };
+/* 정렬 기준. 오름/내림 방향은 기준과 따로 state.dir 로 둔다. */
+const SORT_KEYS = ['default', 'name', 'rarity', 'chronos', 'cost', 'night', 'day'];
 
 /** 한글 문자열 -> 초성 문자열 */
 function chosung(s) {
@@ -165,6 +167,7 @@ const state = {
   song: '',
   range: Object.fromEntries(RANGES.map((r) => [r.key, { min: null, max: null }])),
   sort: 'default',
+  dir: 'asc',
   view: 'grid',
 };
 let DATA = null;
@@ -338,19 +341,25 @@ function filtered() {
     return true;
   });
 
-  const num = (v) => (v === null || v === undefined ? -Infinity : v);
+  const sign = state.dir === 'desc' ? -1 : 1;
+  const order = (a, b) => a.season - b.season || a.no - b.no;
+  /** 수치 비교. 값이 없는 카드는 방향과 무관하게 항상 뒤로 보낸다. */
+  const byNum = (field) => (a, b) => {
+    const x = a[field], y = b[field];
+    const nx = x === null || x === undefined, ny = y === null || y === undefined;
+    if (nx || ny) return nx && ny ? 0 : (nx ? 1 : -1);
+    return sign * (x - y);
+  };
   const cmp = {
-    default: (a, b) => a.season - b.season || a.no - b.no,
-    name: (a, b) => cardName(a).localeCompare(cardName(b), state.lang),
-    rarity: (a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity],
-    'chronos-asc': (a, b) => num(a.chronos) - num(b.chronos),
-    'chronos-desc': (a, b) => num(b.chronos) - num(a.chronos),
-    'cost-asc': (a, b) => num(a.powerCost) - num(b.powerCost),
-    'cost-desc': (a, b) => num(b.powerCost) - num(a.powerCost),
-    'night-desc': (a, b) => num(b.powerNight) - num(a.powerNight),
-    'day-desc': (a, b) => num(b.powerDay) - num(a.powerDay),
-  }[state.sort] || ((a, b) => a.season - b.season || a.no - b.no);
-  list.sort((a, b) => cmp(a, b) || a.season - b.season || a.no - b.no);
+    default: (a, b) => sign * order(a, b),
+    name: (a, b) => sign * cardName(a).localeCompare(cardName(b), state.lang),
+    rarity: (a, b) => sign * (RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity]),
+    chronos: byNum('chronos'),
+    cost: byNum('powerCost'),
+    night: byNum('powerNight'),
+    day: byNum('powerDay'),
+  }[state.sort] || ((a, b) => sign * order(a, b));
+  list.sort((a, b) => cmp(a, b) || order(a, b));
   return list;
 }
 
@@ -561,6 +570,7 @@ function writeURL() {
     if (max !== null) p.set(r.max, max);
   });
   if (state.sort !== 'default') p.set('sort', state.sort);
+  if (state.dir !== 'asc') p.set('dir', state.dir);
   if (state.view !== 'grid') p.set('view', state.view);
   if (modalIdx >= 0 && shown[modalIdx]) p.set('card', shown[modalIdx].id);
   const qs = p.toString();
@@ -585,7 +595,13 @@ function readURL() {
     return Number.isNaN(n) ? null : n;
   };
   RANGES.forEach((r) => { state.range[r.key] = { min: int(r.min), max: int(r.max) }; });
-  state.sort = p.get('sort') || 'default';
+  // 예전 링크는 방향이 기준에 붙어 있었다 (sort=chronos-desc). 분리해서 받아 준다.
+  let sort = p.get('sort') || 'default';
+  let dir = p.get('dir');
+  const legacy = /^(.*)-(asc|desc)$/.exec(sort);
+  if (legacy) { sort = legacy[1]; dir = dir || legacy[2]; }
+  state.sort = SORT_KEYS.includes(sort) ? sort : 'default';
+  state.dir = dir === 'desc' ? 'desc' : 'asc';
   state.view = p.get('view') === 'table' ? 'table' : 'grid';
 }
 function openFromURL() {
@@ -625,6 +641,9 @@ function syncControls() {
     $(`${r.key}-max`).value = state.range[r.key].max ?? '';
   });
   $('sort').value = state.sort;
+  const asc = state.dir === 'asc';
+  $('sort-dir').textContent = `${asc ? '↑' : '↓'} ${asc ? t('sortAsc') : t('sortDesc')}`;
+  $('sort-dir').title = t('sortDirHint');
   $('view-toggle').textContent = state.view === 'grid' ? t('viewTable') : t('viewGrid');
 }
 
@@ -660,6 +679,10 @@ function bindEvents() {
     state.song = e.target.value; render(); writeURL();
   });
   $('sort').addEventListener('change', (e) => { state.sort = e.target.value; render(); writeURL(); });
+  $('sort-dir').addEventListener('click', () => {
+    state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+    syncControls(); render(); writeURL();
+  });
 
   document.querySelectorAll('[data-reset]').forEach((b) => {
     b.addEventListener('click', () => {
@@ -672,6 +695,7 @@ function bindEvents() {
     state.song = '';
     RANGES.forEach((r) => { state.range[r.key] = { min: null, max: null }; });
     state.sort = 'default';
+    state.dir = 'asc';
     syncControls(); render(); writeURL();
   });
 

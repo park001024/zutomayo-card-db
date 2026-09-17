@@ -67,9 +67,11 @@
     <div class="toolbar">
       <div class="count"><strong id="count">0</strong><span id="count-total"></span></div>
       <div class="spacer"></div>
-      <label class="sort"><span data-i18n="sort"></span>
+      <div class="sort">
+        <label for="sort" data-i18n="sort"></label>
+        <button id="sort-dir" class="ghost sort-dir" type="button"></button>
         <select id="sort"></select>
-      </label>
+      </div>
       <button id="share" class="ghost" type="button" data-i18n="copyLink"></button>
     </div>
 
