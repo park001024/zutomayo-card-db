@@ -48,7 +48,13 @@ a { color: var(--accent-2); }
 .logo { font-weight: 800; letter-spacing: .02em; font-size: 15px; }
 .sub { font-size: 11px; color: var(--fg-dim); }
 
-.search-wrap { position: relative; flex: 1; max-width: 620px; margin: 0 auto; }
+.search-wrap { display: flex; gap: 6px; flex: 1; max-width: 620px; margin: 0 auto; }
+.search-field { position: relative; flex: 1; }
+.scope {
+  background: var(--bg-3); border: 1px solid var(--line); color: var(--fg-dim);
+  border-radius: 999px; padding: 10px 8px; font-size: 13px; flex: none;
+}
+.scope:focus { outline: none; border-color: var(--accent); }
 #q {
   width: 100%; padding: 10px 34px 10px 14px;
   background: var(--bg-3); border: 1px solid var(--line);

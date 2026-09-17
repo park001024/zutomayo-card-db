@@ -10,6 +10,9 @@ const UI = {
   ko: {
     brandSub: '한국어 도감',
     searchPlaceholder: '이름 · 효과 · 일러스트레이터 · 초성 검색',
+    searchIn: (n) => `${n} 검색`,
+    scopeLabel: '검색 대상',
+    scopeOptions: [['all', '전체'], ['name', '이름'], ['effect', '효과'], ['illustrator', '일러스트레이터']],
     all: '전체',
     fSeason: '탄 / 팩', fType: '카드 종류', fRarity: '등급', fAttribute: '속성',
     fSong: '수록곡',
@@ -38,6 +41,9 @@ const UI = {
   ja: {
     brandSub: '日本語（公式データ）',
     searchPlaceholder: 'カード名・効果・イラストレーターを検索',
+    searchIn: (n) => `${n}を検索`,
+    scopeLabel: '検索対象',
+    scopeOptions: [['all', 'すべて'], ['name', '名前'], ['effect', '効果'], ['illustrator', 'イラストレーター']],
     all: 'すべて',
     fSeason: '弾 / パック', fType: '種類', fRarity: 'レアリティ', fAttribute: '属性',
     fSong: '楽曲',
@@ -77,6 +83,8 @@ const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','
 const RARITY_ORDER = { N: 0, R: 1, SR: 2, UR: 3, SE: 4 };
 /* 정렬 기준. 오름/내림 방향은 기준과 따로 state.dir 로 둔다. */
 const SORT_KEYS = ['default', 'name', 'rarity', 'chronos', 'cost', 'night', 'day'];
+/* 검색 대상. all 은 나머지를 모두 합친 것이다. */
+const SCOPE_KEYS = ['all', 'name', 'effect', 'illustrator'];
 
 /** 한글 문자열 -> 초성 문자열 */
 function chosung(s) {
@@ -163,6 +171,7 @@ const isChosungQuery = (x) => /^[ㄱ-ㅎ]+$/.test(x);
 const state = {
   lang: 'ko',
   q: '',
+  scope: 'all',
   season: new Set(), type: new Set(), rarity: new Set(), attribute: new Set(),
   song: '',
   range: Object.fromEntries(RANGES.map((r) => [r.key, { min: null, max: null }])),
@@ -212,14 +221,22 @@ async function boot() {
 
   CARDS = DATA.cards.map((c) => {
     // 검색 범위: 양쪽 언어의 이름·효과 + 일러스트레이터 (초성은 한국어 이름·효과만)
-    const hay = [c.nameKo, c.nameJa, c.effectKo, c.effectJa, c.illustrator].join(' ');
+    // 대상별 인덱스. norm 이 공백을 지우므로 조각을 이어 붙인 것과
+    // 통째로 정규화한 것이 같아, all 은 나머지를 이어 붙여 만든다.
+    const name = norm([c.nameKo, c.nameJa].join(' '));
+    const effect = norm([c.effectKo, c.effectJa].join(' '));
+    const illustrator = norm(c.illustrator || '');
+    // 초성은 한국어 이름·효과에만 적용된다 (일러스트레이터는 일본어 표기라 대상이 아니다)
+    const choName = norm(chosung(c.nameKo || ''));
+    const choEffect = norm(chosung(c.effectKo || ''));
     return {
       ...c,
-      _text: norm(hay),
-      _cho: norm(chosung([c.nameKo, c.effectKo].join(' '))),
+      _text: { all: name + effect + illustrator, name, effect, illustrator },
+      _cho: { all: choName + choEffect, name: choName, effect: choEffect, illustrator: '' },
     };
   });
 
+  buildScope();
   buildSort();
   buildChips();
   buildSongSelect();
@@ -275,6 +292,15 @@ function buildSongSelect() {
   ).join('');
   sel.value = state.song;
 }
+function buildScope() {
+  $('scope').innerHTML = t('scopeOptions')
+    .map(([v, text]) => `<option value="${v}">${esc(text)}</option>`).join('');
+  $('scope').value = state.scope;
+  $('scope').setAttribute('aria-label', t('scopeLabel'));
+}
+/** 검색 대상 키 -> 화면에 보이는 이름 */
+const scopeName = (key) => (t('scopeOptions').find(([v]) => v === key) || [, key])[1];
+
 function buildSort() {
   $('sort').innerHTML = t('sortOptions')
     .map(([v, text]) => `<option value="${v}">${esc(text)}</option>`).join('');
@@ -317,8 +343,9 @@ function buildRanges() {
 
 /* ── 필터 ─────────────────────────────────── */
 function matchQuery(card, tokens) {
+  const text = card._text[state.scope], cho = card._cho[state.scope];
   return tokens.every((tok) =>
-    isChosungQuery(tok) ? card._cho.includes(tok) : card._text.includes(tok));
+    isChosungQuery(tok) ? cho.includes(tok) : text.includes(tok));
 }
 
 function filtered() {
@@ -421,6 +448,9 @@ function badges(c) {
 function render() {
   shown = filtered();
   const tokens = state.q.trim().split(/\s+/).filter(Boolean);
+  // 검색하지 않은 필드에 밑줄이 그이면 왜 걸렸는지 오해하게 되므로 대상만 강조한다
+  const inScope = (f) => (state.scope === 'all' || state.scope === f ? tokens : []);
+  const nameToks = inScope('name'), effToks = inScope('effect');
 
   $('count').textContent = shown.length;
   $('count-total').textContent = t('total')(CARDS.length);
@@ -439,9 +469,9 @@ function render() {
       el.innerHTML =
         `<img src="${c.thumb}" alt="${esc(cardName(c))}" loading="lazy" decoding="async" />` +
         `<div class="tile-body">` +
-        `<div class="tile-name">${highlight(cardName(c), tokens)}</div>` +
+        `<div class="tile-name">${highlight(cardName(c), nameToks)}</div>` +
         `<div class="tile-meta">${badges(c)}</div>` +
-        (eff ? `<div class="tile-effect">${highlight(eff, tokens)}</div>` : '') +
+        (eff ? `<div class="tile-effect">${highlight(eff, effToks)}</div>` : '') +
         `</div>`;
       el.addEventListener('click', () => openModal(i));
       frag.appendChild(el);
@@ -455,7 +485,7 @@ function render() {
       const tr = document.createElement('tr');
       tr.innerHTML =
         `<td><img src="${c.thumb}" alt="" loading="lazy" /></td>` +
-        `<td>${highlight(cardName(c), tokens)}</td>` +
+        `<td>${highlight(cardName(c), nameToks)}</td>` +
         `<td class="num">${c.season}</td>` +
         `<td><span class="badge r-${c.rarity}">${c.rarity}</span></td>` +
         `<td>${esc(typeLabel(c))}</td>` +
@@ -465,7 +495,7 @@ function render() {
         `<td class="num">${cell(c.powerDay)}</td>` +
         `<td class="num">${cell(c.powerCost)}</td>` +
         `<td class="num">${cell(c.sendToPower)}</td>` +
-        `<td class="eff">${cardEffect(c) ? highlight(cardEffect(c), tokens) : '–'}</td>`;
+        `<td class="eff">${cardEffect(c) ? highlight(cardEffect(c), effToks) : '–'}</td>`;
       tr.addEventListener('click', () => openModal(i));
       frag.appendChild(tr);
     });
@@ -477,7 +507,10 @@ function renderActiveFilters() {
   const tags = [];
   const push = (text, clear) => tags.push({ text, clear });
 
-  if (state.q.trim()) push(`"${state.q.trim()}"`, () => { state.q = ''; });
+  if (state.q.trim()) {
+    const where = state.scope === 'all' ? '' : `${scopeName(state.scope)}: `;
+    push(`${where}"${state.q.trim()}"`, () => { state.q = ''; });
+  }
   state.season.forEach((v) => push(isJa() ? `${v}弾` : `${v}탄`, () => state.season.delete(v)));
   state.type.forEach((v) => push(label(DATA.types, v), () => state.type.delete(v)));
   state.rarity.forEach((v) => push(v, () => state.rarity.delete(v)));
@@ -561,6 +594,7 @@ function writeURL() {
   const p = new URLSearchParams();
   if (state.lang !== 'ko') p.set('lang', state.lang);
   if (state.q.trim()) p.set('q', state.q.trim());
+  if (state.scope !== 'all') p.set('scope', state.scope);
   [['season', 'season'], ['type', 'type'], ['rarity', 'rarity'], ['attribute', 'attr']]
     .forEach(([g, key]) => { if (state[g].size) p.set(key, [...state[g]].join(',')); });
   if (state.song) p.set('song', state.song);
@@ -585,6 +619,8 @@ function readURL() {
   state.lang = lang === 'ja' ? 'ja' : 'ko';
 
   state.q = p.get('q') || '';
+  const scope = p.get('scope');
+  state.scope = SCOPE_KEYS.includes(scope) ? scope : 'all';
   const setOf = (key, g) => (p.get(key) || '').split(',').filter(Boolean).forEach((v) => state[g].add(v));
   setOf('season', 'season'); setOf('type', 'type'); setOf('rarity', 'rarity'); setOf('attr', 'attribute');
   state.song = p.get('song') || '';
@@ -624,7 +660,7 @@ function setLang(lang) {
   state.lang = lang;
   try { localStorage.setItem('ztmy-lang', lang); } catch {}
   // 라벨이 언어에 따라 바뀌는 컨트롤은 다시 만든다
-  buildSort(); buildChips(); buildSongSelect(); buildRanges();
+  buildScope(); buildSort(); buildChips(); buildSongSelect(); buildRanges();
   applyI18n(); syncControls(); render(); writeURL();
   if (modalIdx >= 0) openModal(modalIdx);
 }
@@ -635,6 +671,9 @@ function syncControls() {
   });
   $('q').value = state.q;
   $('q-clear').hidden = !state.q;
+  $('scope').value = state.scope;
+  $('q').placeholder = state.scope === 'all'
+    ? t('searchPlaceholder') : t('searchIn')(scopeName(state.scope));
   $('f-song').value = state.song;
   RANGES.forEach((r) => {
     $(`${r.key}-min`).value = state.range[r.key].min ?? '';
@@ -675,6 +714,10 @@ function bindEvents() {
   $('q-clear').addEventListener('click', () => {
     state.q = ''; syncControls(); render(); writeURL(); $('q').focus();
   });
+  $('scope').addEventListener('change', (e) => {
+    state.scope = e.target.value;
+    syncControls(); render(); writeURL();
+  });
   $('f-song').addEventListener('change', (e) => {
     state.song = e.target.value; render(); writeURL();
   });
@@ -691,6 +734,7 @@ function bindEvents() {
   });
   $('reset-all').addEventListener('click', () => {
     state.q = '';
+    state.scope = 'all';
     ['season', 'type', 'rarity', 'attribute'].forEach((g) => state[g].clear());
     state.song = '';
     RANGES.forEach((r) => { state.range[r.key] = { min: null, max: null }; });
