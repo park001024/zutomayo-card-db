@@ -48,19 +48,31 @@ a { color: var(--accent-2); }
 .logo { font-weight: 800; letter-spacing: .02em; font-size: 15px; }
 .sub { font-size: 11px; color: var(--fg-dim); }
 
-.search-wrap { display: flex; gap: 6px; flex: 1; max-width: 620px; margin: 0 auto; }
-.search-field { position: relative; flex: 1; }
+/* 검색 대상 선택기와 입력칸을 테두리 하나 안에 나란히 넣고 구분선으로 나눈다 */
+.search-wrap {
+  position: relative; display: flex; align-items: center;
+  flex: 1; max-width: 620px; margin: 0 auto;
+  background: var(--bg-3); border: 1px solid var(--line); border-radius: 999px;
+}
+.search-wrap:focus-within {
+  border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
 .scope {
-  background: var(--bg-3); border: 1px solid var(--line); color: var(--fg-dim);
-  border-radius: 999px; padding: 10px 8px; font-size: 13px; flex: none;
+  flex: none; background: none; border: 0; outline: none;
+  border-right: 1px solid var(--line);
+  color: var(--fg-dim); font-size: 13px; padding: 10px 7px 10px 14px;
 }
-.scope:focus { outline: none; border-color: var(--accent); }
+.scope:hover { color: var(--fg); }
+/* .scope 의 글꼴로 글자 폭을 재기 위한 숨은 요소 (화면에 보이지 않는다) */
+#scope-probe {
+  position: absolute; visibility: hidden; pointer-events: none;
+  white-space: pre; font-size: 13px;
+}
 #q {
-  width: 100%; padding: 10px 34px 10px 14px;
-  background: var(--bg-3); border: 1px solid var(--line);
-  border-radius: 999px; outline: none;
+  flex: 1; min-width: 0;
+  padding: 10px 34px 10px 12px;
+  background: none; border: 0; border-radius: 999px; outline: none;
 }
-#q:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 #q::-webkit-search-cancel-button { display: none; }
 #q-clear {
   position: absolute; right: 8px; top: 50%; transform: translateY(-50%);

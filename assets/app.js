@@ -293,6 +293,7 @@ function buildSongSelect() {
   sel.value = state.song;
 }
 function buildScope() {
+  scopeChrome = null;                           // 항목이 바뀌었으니 다시 잰다
   $('scope').innerHTML = t('scopeOptions')
     .map(([v, text]) => `<option value="${v}">${esc(text)}</option>`).join('');
   $('scope').value = state.scope;
@@ -300,6 +301,22 @@ function buildScope() {
 }
 /** 검색 대상 키 -> 화면에 보이는 이름 */
 const scopeName = (key) => (t('scopeOptions').find(([v]) => v === key) || [, key])[1];
+
+/* 글자 외에 화살표와 좌우 여백이 차지하는 폭. 기본 너비에서 역산해 한 번만 구한다. */
+let scopeChrome = null;
+/** <select> 는 가장 긴 항목에 맞춰 너비가 잡혀, 짧은 항목을 고르면 빈 자리가 남는다.
+ *  고른 항목의 글자 폭을 실제 DOM 으로 재서 너비를 맞춘다. */
+function fitScopeWidth() {
+  const sel = $('scope'), probe = $('scope-probe');
+  const widthOf = (text) => { probe.textContent = text; return probe.offsetWidth; };
+  if (scopeChrome === null) {
+    sel.style.width = '';                       // 브라우저 기본값 = 가장 긴 항목 기준
+    const widest = Math.max(0, ...[...sel.options].map((o) => widthOf(o.text)));
+    scopeChrome = Math.max(0, sel.offsetWidth - widest);
+  }
+  const w = widthOf(sel.options[sel.selectedIndex]?.text || '');
+  sel.style.width = w > 0 ? `${w + scopeChrome}px` : '';
+}
 
 function buildSort() {
   $('sort').innerHTML = t('sortOptions')
@@ -672,6 +689,7 @@ function syncControls() {
   $('q').value = state.q;
   $('q-clear').hidden = !state.q;
   $('scope').value = state.scope;
+  fitScopeWidth();
   $('q').placeholder = state.scope === 'all'
     ? t('searchPlaceholder') : t('searchIn')(scopeName(state.scope));
   $('f-song').value = state.song;
